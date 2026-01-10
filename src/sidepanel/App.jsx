@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Sparkles, Copy, ArrowRight, Save, X, MessageSquare, Loader2, Edit3, ChevronDown, ChevronUp } from 'lucide-react';
+import { Settings, Sparkles, Copy, ArrowRight, Save, X, MessageSquare, Loader2, Edit3, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
 import './App.css';
 import { saveSettings, getSettings, improvePrompt } from '../utils/llm';
 import { extractPlaceholders, replacePlaceholders, areAllPlaceholdersFilled } from '../utils/placeholder-parser';
@@ -376,6 +376,23 @@ function App() {
                             >
                                 <Edit3 size={16} /> {t('main_edit_prompt')}
                             </button>
+                        ) : hasPlaceholders ? (
+                            <>
+                                <button
+                                    className="btn btn-info"
+                                    style={{ marginTop: '8px' }}
+                                    onClick={handleOpenModal}
+                                >
+                                    <RefreshCw size={16} /> {t('main_re_edit_prompt')}
+                                </button>
+                                <button
+                                    className="btn btn-secondary"
+                                    style={{ marginTop: '8px' }}
+                                    onClick={handleCopy}
+                                >
+                                    <Copy size={16} /> {t('main_copy_clipboard')}
+                                </button>
+                            </>
                         ) : (
                             <button
                                 className="btn btn-secondary"

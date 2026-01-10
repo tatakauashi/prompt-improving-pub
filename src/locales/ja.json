@@ -20,6 +20,7 @@
     "main_suggestions": "提案",
     "main_structured_prompt": "構造化プロンプト",
     "main_edit_prompt": "プロンプトを編集",
+    "main_re_edit_prompt": "プロンプトを再編集",
     "main_copy_clipboard": "クリップボードにコピー",
     "error_no_prompt": "まずプロンプトを入力またはキャプチャしてください。",
     "error_capture_failed": "キャプチャに失敗しました: {{message}}",
