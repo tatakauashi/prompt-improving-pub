@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Check } from 'lucide-react';
 import './PlaceholderModal.css';
 import useTranslation from '../hooks/useTranslation';
@@ -13,11 +13,52 @@ function PlaceholderModal({
     promptText
 }) {
     const [localValues, setLocalValues] = useState(values);
+    const [customMode, setCustomMode] = useState({});
+    const [customInputValues, setCustomInputValues] = useState({});
     const { t } = useTranslation();
+
+    // Initialize custom mode based on existing values
+    useEffect(() => {
+        const newCustomMode = {};
+        const newCustomInputValues = {};
+
+        placeholders.forEach(placeholder => {
+            const value = values[placeholder.id];
+            if (value && placeholder.options) {
+                // Check if the value is not in the options list (i.e., it's a custom value)
+                if (!placeholder.options.includes(value)) {
+                    newCustomMode[placeholder.id] = true;
+                    newCustomInputValues[placeholder.id] = value;
+                }
+            }
+        });
+
+        setCustomMode(newCustomMode);
+        setCustomInputValues(newCustomInputValues);
+    }, [placeholders, values]);
 
     if (!isOpen) return null;
 
-    const handleChange = (placeholderId, value) => {
+    const handleSelectChange = (placeholderId, value) => {
+        if (value === '__custom__') {
+            // Entering custom mode
+            setCustomMode({ ...customMode, [placeholderId]: true });
+            // Use existing custom input value if available, otherwise empty
+            const customValue = customInputValues[placeholderId] || '';
+            setLocalValues({ ...localValues, [placeholderId]: customValue });
+        } else {
+            // Selected a predefined option
+            setCustomMode({ ...customMode, [placeholderId]: false });
+            setLocalValues({ ...localValues, [placeholderId]: value });
+        }
+    };
+
+    const handleCustomInputChange = (placeholderId, value) => {
+        setCustomInputValues({ ...customInputValues, [placeholderId]: value });
+        setLocalValues({ ...localValues, [placeholderId]: value });
+    };
+
+    const handleFreeInputChange = (placeholderId, value) => {
         setLocalValues({ ...localValues, [placeholderId]: value });
     };
 
@@ -68,8 +109,8 @@ function PlaceholderModal({
                                 {placeholder.options ? (
                                     <div className="select-with-custom">
                                         <select
-                                            value={localValues[placeholder.id] || ''}
-                                            onChange={(e) => handleChange(placeholder.id, e.target.value)}
+                                            value={customMode[placeholder.id] ? '__custom__' : (localValues[placeholder.id] || '')}
+                                            onChange={(e) => handleSelectChange(placeholder.id, e.target.value)}
                                         >
                                             <option value="">{t('modal_select_option')}</option>
                                             {placeholder.options.map((option, idx) => (
@@ -79,11 +120,12 @@ function PlaceholderModal({
                                             ))}
                                             <option value="__custom__">{t('modal_custom_option')}</option>
                                         </select>
-                                        {localValues[placeholder.id] === '__custom__' && (
+                                        {customMode[placeholder.id] && (
                                             <input
                                                 type="text"
+                                                value={customInputValues[placeholder.id] || ''}
                                                 placeholder={t('modal_custom_placeholder')}
-                                                onChange={(e) => handleChange(placeholder.id, e.target.value)}
+                                                onChange={(e) => handleCustomInputChange(placeholder.id, e.target.value)}
                                                 autoFocus
                                             />
                                         )}
@@ -92,7 +134,7 @@ function PlaceholderModal({
                                     <input
                                         type="text"
                                         value={localValues[placeholder.id] || ''}
-                                        onChange={(e) => handleChange(placeholder.id, e.target.value)}
+                                        onChange={(e) => handleFreeInputChange(placeholder.id, e.target.value)}
                                         placeholder={t('modal_input_placeholder', { label: placeholder.label.toLowerCase() })}
                                     />
                                 )}
