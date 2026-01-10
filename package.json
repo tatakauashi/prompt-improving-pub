@@ -5,9 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && shx cp manifest.json dist/ && shx cp -r public/icons dist/",
+    "build": "vite build && shx cp manifest.json dist/ && shx cp -r public/icons dist/ && shx cp -r _locales dist/",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "check-i18n": "node scripts/check-i18n.js"
   },
   "dependencies": {
     "lucide-react": "^0.555.0",

@@ -264,6 +264,10 @@ textarea:focus {
   flex-wrap: wrap;
   gap: 6px;
   margin-top: 8px;
+  max-height: 500px;
+  opacity: 1;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out, opacity 0.25s ease-out, margin-top 0.3s ease-out;
 }
 
 .radio-label {

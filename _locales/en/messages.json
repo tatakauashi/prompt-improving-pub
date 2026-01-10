@@ -1,0 +1,14 @@
+{
+    "appName": {
+        "message": "Prompt Improving Assistant",
+        "description": "Name of the extension"
+    },
+    "appDescription": {
+        "message": "Assist in refining AI prompts directly within the browser.",
+        "description": "Description of the extension"
+    },
+    "actionTitle": {
+        "message": "Open Prompt Assistant",
+        "description": "Title for the browser action button"
+    }
+}

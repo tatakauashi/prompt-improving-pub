@@ -5,6 +5,7 @@ import { saveSettings, getSettings, improvePrompt } from '../utils/llm';
 import { extractPlaceholders, replacePlaceholders, areAllPlaceholdersFilled } from '../utils/placeholder-parser';
 import { EXPLANATION_STYLES } from '../utils/system-prompt';
 import PlaceholderModal from './PlaceholderModal';
+import useTranslation from '../hooks/useTranslation';
 
 // Default models for each provider
 const DEFAULT_MODELS = {
@@ -36,6 +37,9 @@ function App() {
     // Explanation style state
     const [explanationStyle, setExplanationStyle] = useState('beginnerFriendly');
     const [isStyleDropdownOpen, setIsStyleDropdownOpen] = useState(false);
+
+    // Translation hook
+    const { t, currentLanguage, changeLanguage, supportedLanguages } = useTranslation();
 
     // Helper function to get current model based on provider
     const getCurrentModel = () => {
@@ -109,11 +113,11 @@ function App() {
         try {
             const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
             if (!tab) {
-                throw new Error('No active tab found');
+                throw new Error(t('error_no_active_tab'));
             }
 
             if (!tab.id) {
-                throw new Error('Tab ID is undefined');
+                throw new Error(t('error_tab_id_undefined'));
             }
 
             console.log('Sending message to tab:', tab.id);
@@ -125,20 +129,20 @@ function App() {
             if (response && response.prompt) {
                 setCurrentPrompt(response.prompt);
                 if (!response.prompt.trim()) {
-                    setError('Captured text is empty. Please focus on a text input and try again.');
+                    setError(t('error_empty_text'));
                 }
             } else {
-                setError('No text found in active input. Please click inside a text field first.');
+                setError(t('error_no_text_found'));
             }
         } catch (err) {
             console.error('Capture error:', err);
-            setError(`Failed to capture: ${err.message}`);
+            setError(t('error_capture_failed', { message: err.message }));
         }
     };
 
     const handleImprove = async () => {
         if (!currentPrompt.trim()) {
-            setError('Please enter or capture a prompt first.');
+            setError(t('error_no_prompt'));
             return;
         }
         setIsLoading(true);
@@ -212,32 +216,32 @@ function App() {
         return (
             <div className="container">
                 <div className="header">
-                    <h1>Settings</h1>
+                    <h1>{t('settings_title')}</h1>
                     <button className="btn-icon" onClick={() => setView('main')}><X size={20} /></button>
                 </div>
                 <div className="card">
                     <div className="form-group">
-                        <label>AI Provider</label>
+                        <label>{t('settings_provider')}</label>
                         <select
                             value={settings.provider}
                             onChange={(e) => handleProviderChange(e.target.value)}
                         >
-                            <option value="gemini">Google Gemini</option>
-                            <option value="openai">OpenAI</option>
-                            <option value="claude">Anthropic Claude</option>
+                            <option value="gemini">{t('settings_provider_gemini')}</option>
+                            <option value="openai">{t('settings_provider_openai')}</option>
+                            <option value="claude">{t('settings_provider_claude')}</option>
                         </select>
                     </div>
                     <div className="form-group">
-                        <label>API Key</label>
+                        <label>{t('settings_api_key')}</label>
                         <input
                             type="password"
                             value={settings.apiKey}
                             onChange={(e) => setSettingsState({ ...settings, apiKey: e.target.value })}
-                            placeholder="Enter your API Key"
+                            placeholder={t('settings_api_key_placeholder')}
                         />
                     </div>
                     <div className="form-group">
-                        <label>Model Name (Optional)</label>
+                        <label>{t('settings_model')}</label>
                         <div style={{ display: 'flex', gap: '8px', alignItems: 'stretch' }}>
                             <input
                                 type="text"
@@ -257,12 +261,25 @@ function App() {
                                     flexShrink: 0
                                 }}
                             >
-                                Default
+                                {t('settings_model_default_button')}
                             </button>
                         </div>
                     </div>
+                    <div className="form-group">
+                        <label>{t('settings_language')}</label>
+                        <select
+                            value={currentLanguage}
+                            onChange={(e) => changeLanguage(e.target.value)}
+                        >
+                            {Object.values(supportedLanguages).map(lang => (
+                                <option key={lang.code} value={lang.code}>
+                                    {lang.nativeName}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
                     <button className="btn btn-primary" onClick={handleSaveSettings}>
-                        <Save size={16} /> Save Settings
+                        <Save size={16} /> {t('settings_save')}
                     </button>
                 </div>
             </div>
@@ -272,24 +289,24 @@ function App() {
     return (
         <div className="container">
             <div className="header">
-                <h1>Prompt Assistant</h1>
+                <h1>{t('app_title')}</h1>
                 <button className="btn-icon" onClick={() => setView('settings')}><Settings size={20} /></button>
             </div>
 
             <div className="card">
-                <label style={{ fontSize: '12px', color: '#666', marginBottom: '4px', display: 'block' }}>Original Prompt</label>
+                <label style={{ fontSize: '12px', color: '#666', marginBottom: '4px', display: 'block' }}>{t('main_original_prompt')}</label>
                 <textarea
                     value={currentPrompt}
                     onChange={(e) => setCurrentPrompt(e.target.value)}
-                    placeholder="Type or capture your prompt here..."
+                    placeholder={t('main_prompt_placeholder')}
                 />
                 <div className="explanation-style-group">
                     <div
                         className="style-header"
                         onClick={() => setIsStyleDropdownOpen(!isStyleDropdownOpen)}
                     >
-                        <label className="section-label">Explanation Style:</label>
-                        <span className="current-style">{EXPLANATION_STYLES[explanationStyle]?.label || 'None'}</span>
+                        <label className="section-label">{t('main_explanation_style')}</label>
+                        <span className="current-style">{EXPLANATION_STYLES[explanationStyle]?.labelKey ? t(EXPLANATION_STYLES[explanationStyle].labelKey) : t('style_none')}</span>
                         <button
                             className="btn-dropdown-toggle"
                             type="button"
@@ -297,30 +314,35 @@ function App() {
                             {isStyleDropdownOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                         </button>
                     </div>
-                    {isStyleDropdownOpen && (
-                        <div className="radio-group">
-                            {Object.entries(EXPLANATION_STYLES).map(([key, config]) => (
-                                <label key={key} className="radio-label">
-                                    <input
-                                        type="radio"
-                                        name="explanationStyle"
-                                        value={key}
-                                        checked={explanationStyle === key}
-                                        onChange={(e) => handleStyleChange(e.target.value)}
-                                    />
-                                    <span>{config.label}</span>
-                                </label>
-                            ))}
-                        </div>
-                    )}
+                    <div
+                        className="radio-group"
+                        style={{
+                            maxHeight: isStyleDropdownOpen ? '500px' : '0',
+                            opacity: isStyleDropdownOpen ? 1 : 0,
+                            marginTop: isStyleDropdownOpen ? '8px' : '0'
+                        }}
+                    >
+                        {Object.entries(EXPLANATION_STYLES).map(([key, config]) => (
+                            <label key={key} className="radio-label">
+                                <input
+                                    type="radio"
+                                    name="explanationStyle"
+                                    value={key}
+                                    checked={explanationStyle === key}
+                                    onChange={(e) => handleStyleChange(e.target.value)}
+                                />
+                                <span>{t(config.labelKey)}</span>
+                            </label>
+                        ))}
+                    </div>
                 </div>
                 <div style={{ display: 'flex', gap: '8px' }}>
                     <button className="btn btn-secondary" onClick={handleCapture}>
-                        <ArrowRight size={16} /> Capture
+                        <ArrowRight size={16} /> {t('main_capture')}
                     </button>
                     <button className="btn btn-primary" onClick={handleImprove} disabled={isLoading}>
                         {isLoading ? <Loader2 size={16} className="loading-spinner" /> : <Sparkles size={16} />}
-                        {isLoading ? 'Improving...' : 'Improve'}
+                        {isLoading ? t('main_improving') : t('main_improve')}
                     </button>
                 </div>
                 {error && <div style={{ color: 'red', fontSize: '12px', marginTop: '8px' }}>{error}</div>}
@@ -330,7 +352,7 @@ function App() {
                 <div className="card result-container">
                     {improvementPoints.length > 0 && (
                         <div style={{ marginBottom: '12px' }}>
-                            <label style={{ fontSize: '12px', color: '#666', marginBottom: '4px', display: 'block' }}>Suggestions</label>
+                            <label style={{ fontSize: '12px', color: '#666', marginBottom: '4px', display: 'block' }}>{t('main_suggestions')}</label>
                             <ul className="improvement-list">
                                 {improvementPoints.map((point, i) => (
                                     <li key={i} className="improvement-item">{point}</li>
@@ -340,7 +362,7 @@ function App() {
                     )}
 
                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-                        <label style={{ fontSize: '12px', color: '#666', marginBottom: '4px', display: 'block' }}>Structured Prompt</label>
+                        <label style={{ fontSize: '12px', color: '#666', marginBottom: '4px', display: 'block' }}>{t('main_structured_prompt')}</label>
                         <textarea
                             style={{ flex: 1, minHeight: '150px' }}
                             value={structuredPrompt}
@@ -352,7 +374,7 @@ function App() {
                                 style={{ marginTop: '8px' }}
                                 onClick={handleOpenModal}
                             >
-                                <Edit3 size={16} /> Edit Prompt
+                                <Edit3 size={16} /> {t('main_edit_prompt')}
                             </button>
                         ) : (
                             <button
@@ -360,7 +382,7 @@ function App() {
                                 style={{ marginTop: '8px' }}
                                 onClick={handleCopy}
                             >
-                                <Copy size={16} /> Copy to Clipboard
+                                <Copy size={16} /> {t('main_copy_clipboard')}
                             </button>
                         )}
                     </div>

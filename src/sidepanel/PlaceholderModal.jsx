@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Check } from 'lucide-react';
 import './PlaceholderModal.css';
+import useTranslation from '../hooks/useTranslation';
 
 function PlaceholderModal({
     isOpen,
@@ -12,6 +13,7 @@ function PlaceholderModal({
     promptText
 }) {
     const [localValues, setLocalValues] = useState(values);
+    const { t } = useTranslation();
 
     if (!isOpen) return null;
 
@@ -47,7 +49,7 @@ function PlaceholderModal({
         <div className="modal-overlay" onClick={handleCancel}>
             <div className="modal-container" onClick={(e) => e.stopPropagation()}>
                 <div className="modal-header">
-                    <h2>Edit Prompt Details</h2>
+                    <h2>{t('modal_title')}</h2>
                     <button className="modal-close-btn" onClick={handleCancel}>
                         <X size={20} />
                     </button>
@@ -55,9 +57,9 @@ function PlaceholderModal({
 
                 <div className="modal-body">
                     <div className="modal-section">
-                        <h3>Fill in the details</h3>
+                        <h3>{t('modal_fill_details')}</h3>
                         <p className="section-description">
-                            Complete the following fields to customize your prompt:
+                            {t('modal_description')}
                         </p>
 
                         {placeholders.map((placeholder) => (
@@ -69,18 +71,18 @@ function PlaceholderModal({
                                             value={localValues[placeholder.id] || ''}
                                             onChange={(e) => handleChange(placeholder.id, e.target.value)}
                                         >
-                                            <option value="">-- Select --</option>
+                                            <option value="">{t('modal_select_option')}</option>
                                             {placeholder.options.map((option, idx) => (
                                                 <option key={idx} value={option}>
                                                     {option}
                                                 </option>
                                             ))}
-                                            <option value="__custom__">Custom...</option>
+                                            <option value="__custom__">{t('modal_custom_option')}</option>
                                         </select>
                                         {localValues[placeholder.id] === '__custom__' && (
                                             <input
                                                 type="text"
-                                                placeholder="Enter custom value..."
+                                                placeholder={t('modal_custom_placeholder')}
                                                 onChange={(e) => handleChange(placeholder.id, e.target.value)}
                                                 autoFocus
                                             />
@@ -91,7 +93,7 @@ function PlaceholderModal({
                                         type="text"
                                         value={localValues[placeholder.id] || ''}
                                         onChange={(e) => handleChange(placeholder.id, e.target.value)}
-                                        placeholder={`Enter ${placeholder.label.toLowerCase()}...`}
+                                        placeholder={t('modal_input_placeholder', { label: placeholder.label.toLowerCase() })}
                                     />
                                 )}
                             </div>
@@ -99,7 +101,7 @@ function PlaceholderModal({
                     </div>
 
                     <div className="modal-section preview-section">
-                        <h3>Preview</h3>
+                        <h3>{t('modal_preview')}</h3>
                         <div className="preview-content">
                             {getPreview()}
                         </div>
@@ -108,10 +110,10 @@ function PlaceholderModal({
 
                 <div className="modal-footer">
                     <button className="btn btn-secondary" onClick={handleCancel}>
-                        Cancel
+                        {t('modal_cancel')}
                     </button>
                     <button className="btn btn-primary" onClick={handleApply}>
-                        <Check size={16} /> Apply
+                        <Check size={16} /> {t('modal_apply')}
                     </button>
                 </div>
             </div>
