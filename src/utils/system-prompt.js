@@ -9,17 +9,13 @@
  * Available explanation style options
  */
 export const EXPLANATION_STYLES = {
-  none: {
-    label: 'None',
-    instruction: ''
+  eli5: {
+    label: 'ELI5 (Like I\'m 5)',
+    instruction: 'The Structured Prompt must require the AI (the final responder) to explain its answers as if explaining to a 5-year-old child, using very simple words and everyday examples.'
   },
   beginnerFriendly: {
     label: 'Beginner-Friendly',
     instruction: 'The Structured Prompt must require the AI (the final responder) to explain its answers in simple, clear, beginner-friendly language that a middle-school student can easily understand.'
-  },
-  eli5: {
-    label: 'ELI5 (Like I\'m 5)',
-    instruction: 'The Structured Prompt must require the AI (the final responder) to explain its answers as if explaining to a 5-year-old child, using very simple words and everyday examples.'
   },
   technical: {
     label: 'Technical',
@@ -28,6 +24,10 @@ export const EXPLANATION_STYLES = {
   concise: {
     label: 'Concise',
     instruction: 'The Structured Prompt must require the AI (the final responder) to provide concise, to-the-point explanations without unnecessary details.'
+  },
+  none: {
+    label: 'None',
+    instruction: ''
   }
 };
 

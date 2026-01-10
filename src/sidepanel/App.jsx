@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Sparkles, Copy, ArrowRight, Save, X, MessageSquare, Loader2, Edit3 } from 'lucide-react';
+import { Settings, Sparkles, Copy, ArrowRight, Save, X, MessageSquare, Loader2, Edit3, ChevronDown, ChevronUp } from 'lucide-react';
 import './App.css';
 import { saveSettings, getSettings, improvePrompt } from '../utils/llm';
 import { extractPlaceholders, replacePlaceholders, areAllPlaceholdersFilled } from '../utils/placeholder-parser';
@@ -35,6 +35,7 @@ function App() {
 
     // Explanation style state
     const [explanationStyle, setExplanationStyle] = useState('beginnerFriendly');
+    const [isStyleDropdownOpen, setIsStyleDropdownOpen] = useState(false);
 
     // Helper function to get current model based on provider
     const getCurrentModel = () => {
@@ -180,11 +181,27 @@ function App() {
         setPlaceholderValues(values);
     };
 
-    const handleCopy = () => {
+    const handleCopy = async () => {
         const finalText = replacePlaceholders(structuredPrompt, placeholderValues);
         // Normalize line breaks to LF to prevent layout issues in web apps
         const normalizedText = finalText.replace(/\r\n/g, '\n');
-        navigator.clipboard.writeText(normalizedText);
+
+        // Blobオブジェクトを作成し、text/plain タイプを指定する
+        // このとき、改行コードはLFのまま保持される
+        const blob = new Blob([normalizedText], { type: 'text/plain' });
+
+        // ClipboardItem を作成し、write() メソッドで書き込む
+        const clipboardItem = new ClipboardItem({ 'text/plain': blob });
+
+        try {
+            await navigator.clipboard.write([clipboardItem]);
+            console.log('LF改行コードを保持したままクリップボードにコピーしました。');
+        } catch (err) {
+            console.error('クリップボードへの書き込みに失敗しました:', err);
+            // write()が使えない/失敗した場合は、writeText()へのフォールバックする
+            await navigator.clipboard.writeText(normalizedText);
+        }
+
         // Could add a toast here
     };
 
@@ -267,21 +284,33 @@ function App() {
                     placeholder="Type or capture your prompt here..."
                 />
                 <div className="explanation-style-group">
-                    <label className="section-label">Explanation Style:</label>
-                    <div className="radio-group">
-                        {Object.entries(EXPLANATION_STYLES).map(([key, config]) => (
-                            <label key={key} className="radio-label">
-                                <input
-                                    type="radio"
-                                    name="explanationStyle"
-                                    value={key}
-                                    checked={explanationStyle === key}
-                                    onChange={(e) => handleStyleChange(e.target.value)}
-                                />
-                                <span>{config.label}</span>
-                            </label>
-                        ))}
+                    <div className="style-header">
+                        <label className="section-label">Explanation Style:</label>
+                        <span className="current-style">{EXPLANATION_STYLES[explanationStyle]?.label || 'None'}</span>
+                        <button
+                            className="btn-dropdown-toggle"
+                            onClick={() => setIsStyleDropdownOpen(!isStyleDropdownOpen)}
+                            type="button"
+                        >
+                            {isStyleDropdownOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                        </button>
                     </div>
+                    {isStyleDropdownOpen && (
+                        <div className="radio-group">
+                            {Object.entries(EXPLANATION_STYLES).map(([key, config]) => (
+                                <label key={key} className="radio-label">
+                                    <input
+                                        type="radio"
+                                        name="explanationStyle"
+                                        value={key}
+                                        checked={explanationStyle === key}
+                                        onChange={(e) => handleStyleChange(e.target.value)}
+                                    />
+                                    <span>{config.label}</span>
+                                </label>
+                            ))}
+                        </div>
+                    )}
                 </div>
                 <div style={{ display: 'flex', gap: '8px' }}>
                     <button className="btn btn-secondary" onClick={handleCapture}>
