@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Sparkles, Copy, ArrowRight, Save, X, MessageSquare, Loader2 } from 'lucide-react';
+import { Settings, Sparkles, Copy, ArrowRight, Save, X, MessageSquare, Loader2, Edit3 } from 'lucide-react';
 import './App.css';
 import { saveSettings, getSettings, improvePrompt } from '../utils/llm';
+import { extractPlaceholders, replacePlaceholders, areAllPlaceholdersFilled } from '../utils/placeholder-parser';
+import PlaceholderModal from './PlaceholderModal';
 
 // Default models for each provider
 const DEFAULT_MODELS = {
@@ -24,6 +26,11 @@ function App() {
     const [structuredPrompt, setStructuredPrompt] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
+
+    // Placeholder editor state
+    const [placeholders, setPlaceholders] = useState([]);
+    const [placeholderValues, setPlaceholderValues] = useState({});
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     // Helper function to get current model based on provider
     const getCurrentModel = () => {
@@ -138,6 +145,11 @@ function App() {
             const result = await improvePrompt(currentPrompt, settingsForAPI);
             setImprovementPoints(result.improvementPoints || []);
             setStructuredPrompt(result.structuredPrompt || '');
+
+            // Detect placeholders in structured prompt
+            const detectedPlaceholders = extractPlaceholders(result.structuredPrompt || '');
+            setPlaceholders(detectedPlaceholders);
+            setPlaceholderValues({});
         } catch (err) {
             setError(err.message);
         } finally {
@@ -145,10 +157,26 @@ function App() {
         }
     };
 
+    const handleOpenModal = () => {
+        setIsModalOpen(true);
+    };
+
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+    };
+
+    const handleApplyPlaceholders = (values) => {
+        setPlaceholderValues(values);
+    };
+
     const handleCopy = () => {
-        navigator.clipboard.writeText(structuredPrompt);
+        const finalText = replacePlaceholders(structuredPrompt, placeholderValues);
+        navigator.clipboard.writeText(finalText);
         // Could add a toast here
     };
+
+    const allPlaceholdersFilled = areAllPlaceholdersFilled(placeholders, placeholderValues);
+    const hasPlaceholders = placeholders.length > 0;
 
     if (view === 'settings') {
         return (
@@ -257,12 +285,36 @@ function App() {
                             value={structuredPrompt}
                             onChange={(e) => setStructuredPrompt(e.target.value)}
                         />
-                        <button className="btn btn-secondary" style={{ marginTop: '8px' }} onClick={handleCopy}>
-                            <Copy size={16} /> Copy to Clipboard
-                        </button>
+                        {hasPlaceholders && !allPlaceholdersFilled ? (
+                            <button
+                                className="btn btn-warning"
+                                style={{ marginTop: '8px' }}
+                                onClick={handleOpenModal}
+                            >
+                                <Edit3 size={16} /> Edit Prompt
+                            </button>
+                        ) : (
+                            <button
+                                className="btn btn-secondary"
+                                style={{ marginTop: '8px' }}
+                                onClick={handleCopy}
+                            >
+                                <Copy size={16} /> Copy to Clipboard
+                            </button>
+                        )}
                     </div>
                 </div>
             )}
+
+            <PlaceholderModal
+                isOpen={isModalOpen}
+                placeholders={placeholders}
+                values={placeholderValues}
+                onValueChange={handleApplyPlaceholders}
+                onClose={handleCloseModal}
+                onApply={handleApplyPlaceholders}
+                promptText={structuredPrompt}
+            />
         </div>
     );
 }
