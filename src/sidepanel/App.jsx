@@ -3,18 +3,36 @@ import { Settings, Sparkles, Copy, ArrowRight, Save, X, MessageSquare, Loader2 }
 import './App.css';
 import { saveSettings, getSettings, improvePrompt } from '../utils/llm';
 
+// Default models for each provider
+const DEFAULT_MODELS = {
+    openai: 'gpt-5',
+    gemini: 'gemini-2.5-pro',
+    claude: 'claude-sonnet-4-5'
+};
+
 function App() {
     const [view, setView] = useState('main'); // 'main' | 'settings'
     const [settings, setSettingsState] = useState({
         apiKey: '',
         provider: 'gemini', // 'gemini' | 'openai' | 'claude'
-        model: 'gemini-2.5-pro'
+        openaiModel: DEFAULT_MODELS.openai,
+        geminiModel: DEFAULT_MODELS.gemini,
+        claudeModel: DEFAULT_MODELS.claude
     });
     const [currentPrompt, setCurrentPrompt] = useState('');
     const [improvementPoints, setImprovementPoints] = useState([]);
     const [structuredPrompt, setStructuredPrompt] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
+
+    // Helper function to get current model based on provider
+    const getCurrentModel = () => {
+        const { provider, openaiModel, geminiModel, claudeModel } = settings;
+        if (provider === 'openai') return openaiModel;
+        if (provider === 'gemini') return geminiModel;
+        if (provider === 'claude') return claudeModel;
+        return '';
+    };
 
     useEffect(() => {
         loadSettings();
@@ -23,9 +41,43 @@ function App() {
     const loadSettings = async () => {
         const s = await getSettings();
         if (s.apiKey) {
-            setSettingsState(s);
+            // Merge loaded settings with defaults for any missing models
+            setSettingsState({
+                apiKey: s.apiKey || '',
+                provider: s.provider || 'gemini',
+                openaiModel: s.openaiModel || DEFAULT_MODELS.openai,
+                geminiModel: s.geminiModel || DEFAULT_MODELS.gemini,
+                claudeModel: s.claudeModel || DEFAULT_MODELS.claude
+            });
         } else {
             setView('settings');
+        }
+    };
+
+    const handleProviderChange = (newProvider) => {
+        setSettingsState({ ...settings, provider: newProvider });
+    };
+
+    const handleModelChange = (newModel) => {
+        const { provider } = settings;
+        if (provider === 'openai') {
+            setSettingsState({ ...settings, openaiModel: newModel });
+        } else if (provider === 'gemini') {
+            setSettingsState({ ...settings, geminiModel: newModel });
+        } else if (provider === 'claude') {
+            setSettingsState({ ...settings, claudeModel: newModel });
+        }
+    };
+
+    const handleSetDefaultModel = () => {
+        const { provider } = settings;
+        const defaultModel = DEFAULT_MODELS[provider];
+        if (provider === 'openai') {
+            setSettingsState({ ...settings, openaiModel: defaultModel });
+        } else if (provider === 'gemini') {
+            setSettingsState({ ...settings, geminiModel: defaultModel });
+        } else if (provider === 'claude') {
+            setSettingsState({ ...settings, claudeModel: defaultModel });
         }
     };
 
@@ -77,7 +129,13 @@ function App() {
         setStructuredPrompt('');
 
         try {
-            const result = await improvePrompt(currentPrompt, settings);
+            // Pass the current model for the selected provider
+            const settingsForAPI = {
+                apiKey: settings.apiKey,
+                provider: settings.provider,
+                model: getCurrentModel()
+            };
+            const result = await improvePrompt(currentPrompt, settingsForAPI);
             setImprovementPoints(result.improvementPoints || []);
             setStructuredPrompt(result.structuredPrompt || '');
         } catch (err) {
@@ -104,7 +162,7 @@ function App() {
                         <label>AI Provider</label>
                         <select
                             value={settings.provider}
-                            onChange={(e) => setSettingsState({ ...settings, provider: e.target.value })}
+                            onChange={(e) => handleProviderChange(e.target.value)}
                         >
                             <option value="gemini">Google Gemini</option>
                             <option value="openai">OpenAI</option>
@@ -122,16 +180,28 @@ function App() {
                     </div>
                     <div className="form-group">
                         <label>Model Name (Optional)</label>
-                        <input
-                            type="text"
-                            value={settings.model}
-                            onChange={(e) => setSettingsState({ ...settings, model: e.target.value })}
-                            placeholder={
-                                settings.provider === 'gemini' ? 'gemini-1.5-pro' :
-                                    settings.provider === 'openai' ? 'gpt-4o' :
-                                        'claude-3-5-sonnet-20241022'
-                            }
-                        />
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'stretch' }}>
+                            <input
+                                type="text"
+                                value={getCurrentModel()}
+                                onChange={(e) => handleModelChange(e.target.value)}
+                                placeholder={DEFAULT_MODELS[settings.provider]}
+                                style={{ flex: 1, minWidth: 0 }}
+                            />
+                            <button
+                                className="btn btn-secondary"
+                                onClick={handleSetDefaultModel}
+                                style={{
+                                    width: 'auto',
+                                    padding: '4px 8px',
+                                    whiteSpace: 'nowrap',
+                                    fontSize: '11px',
+                                    flexShrink: 0
+                                }}
+                            >
+                                Default
+                            </button>
+                        </div>
                     </div>
                     <button className="btn btn-primary" onClick={handleSaveSettings}>
                         <Save size={16} /> Save Settings

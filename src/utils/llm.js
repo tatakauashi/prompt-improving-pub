@@ -5,7 +5,7 @@ export const saveSettings = async (settings) => {
 };
 
 export const getSettings = async () => {
-    return await chrome.storage.local.get(['apiKey', 'model', 'provider']);
+    return await chrome.storage.local.get(['apiKey', 'provider', 'openaiModel', 'geminiModel', 'claudeModel']);
 };
 
 export const improvePrompt = async (currentPrompt, settings) => {
@@ -16,11 +16,11 @@ export const improvePrompt = async (currentPrompt, settings) => {
     }
 
     if (provider === 'openai') {
-        return await callOpenAI(apiKey, model || 'gpt-5-2025-08-07', systemPrompt, currentPrompt);
+        return await callOpenAI(apiKey, model || 'gpt-5', systemPrompt, currentPrompt);
     } else if (provider === 'gemini') {
         return await callGemini(apiKey, model || 'gemini-2.5-pro', systemPrompt, currentPrompt);
     } else if (provider === 'claude') {
-        return await callClaude(apiKey, model || 'claude-3-5-sonnet-20241022', systemPrompt, currentPrompt);
+        return await callClaude(apiKey, model || 'claude-sonnet-4-5', systemPrompt, currentPrompt);
     } else {
         throw new Error('Invalid provider selected.');
     }
