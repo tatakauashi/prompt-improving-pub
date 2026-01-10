@@ -5,6 +5,7 @@
     "settings_provider_gemini": "Google Gemini",
     "settings_provider_openai": "OpenAI",
     "settings_provider_claude": "Anthropic Claude",
+    "settings_provider_xai": "xAI",
     "settings_api_key": "APIキー",
     "settings_api_key_placeholder": "APIキーを入力してください",
     "settings_model": "モデル名（オプション）",

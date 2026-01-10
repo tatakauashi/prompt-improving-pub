@@ -5,7 +5,7 @@ export const saveSettings = async (settings) => {
 };
 
 export const getSettings = async () => {
-    return await chrome.storage.local.get(['apiKey', 'provider', 'openaiModel', 'geminiModel', 'claudeModel', 'explanationStyle']);
+    return await chrome.storage.local.get(['apiKey', 'provider', 'openaiModel', 'geminiModel', 'claudeModel', 'xaiModel', 'explanationStyle']);
 };
 
 export const improvePrompt = async (currentPrompt, settings) => {
@@ -23,6 +23,8 @@ export const improvePrompt = async (currentPrompt, settings) => {
         return await callGemini(apiKey, model || 'gemini-2.5-pro', systemPrompt, currentPrompt);
     } else if (provider === 'claude') {
         return await callClaude(apiKey, model || 'claude-sonnet-4-5', systemPrompt, currentPrompt);
+    } else if (provider === 'xai') {
+        return await callXAI(apiKey, model || 'grok-4-0709', systemPrompt, currentPrompt);
     } else {
         throw new Error('Invalid provider selected.');
     }
@@ -123,6 +125,36 @@ async function callClaude(apiKey, model, systemPrompt, userPrompt) {
             return JSON.parse(responseText.slice(7, -3));
         }
         return JSON.parse(responseText);
+    } catch (e) {
+        throw new Error('Failed to parse AI response as JSON.');
+    }
+}
+
+async function callXAI(apiKey, model, systemPrompt, userPrompt) {
+    const response = await fetch('https://api.x.ai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+            model: model,
+            messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: userPrompt }
+            ],
+            response_format: { type: "json_object" }
+        })
+    });
+
+    if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error?.message || 'xAI API Error');
+    }
+
+    const data = await response.json();
+    try {
+        return JSON.parse(data.choices[0].message.content);
     } catch (e) {
         throw new Error('Failed to parse AI response as JSON.');
     }

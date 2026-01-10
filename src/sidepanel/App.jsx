@@ -11,17 +11,19 @@ import useTranslation from '../hooks/useTranslation';
 const DEFAULT_MODELS = {
     openai: 'gpt-5',
     gemini: 'gemini-2.5-pro',
-    claude: 'claude-sonnet-4-5'
+    claude: 'claude-sonnet-4-5',
+    xai: 'grok-4-0709'
 };
 
 function App() {
     const [view, setView] = useState('main'); // 'main' | 'settings'
     const [settings, setSettingsState] = useState({
         apiKey: '',
-        provider: 'gemini', // 'gemini' | 'openai' | 'claude'
+        provider: 'gemini', // 'gemini' | 'openai' | 'claude' | 'xai'
         openaiModel: DEFAULT_MODELS.openai,
         geminiModel: DEFAULT_MODELS.gemini,
-        claudeModel: DEFAULT_MODELS.claude
+        claudeModel: DEFAULT_MODELS.claude,
+        xaiModel: DEFAULT_MODELS.xai
     });
     const [currentPrompt, setCurrentPrompt] = useState('');
     const [improvementPoints, setImprovementPoints] = useState([]);
@@ -43,10 +45,11 @@ function App() {
 
     // Helper function to get current model based on provider
     const getCurrentModel = () => {
-        const { provider, openaiModel, geminiModel, claudeModel } = settings;
+        const { provider, openaiModel, geminiModel, claudeModel, xaiModel } = settings;
         if (provider === 'openai') return openaiModel;
         if (provider === 'gemini') return geminiModel;
         if (provider === 'claude') return claudeModel;
+        if (provider === 'xai') return xaiModel;
         return '';
     };
 
@@ -63,7 +66,8 @@ function App() {
                 provider: s.provider || 'gemini',
                 openaiModel: s.openaiModel || DEFAULT_MODELS.openai,
                 geminiModel: s.geminiModel || DEFAULT_MODELS.gemini,
-                claudeModel: s.claudeModel || DEFAULT_MODELS.claude
+                claudeModel: s.claudeModel || DEFAULT_MODELS.claude,
+                xaiModel: s.xaiModel || DEFAULT_MODELS.xai
             });
             setExplanationStyle(s.explanationStyle || 'beginnerFriendly');
         } else {
@@ -83,6 +87,8 @@ function App() {
             setSettingsState({ ...settings, geminiModel: newModel });
         } else if (provider === 'claude') {
             setSettingsState({ ...settings, claudeModel: newModel });
+        } else if (provider === 'xai') {
+            setSettingsState({ ...settings, xaiModel: newModel });
         }
     };
 
@@ -95,6 +101,8 @@ function App() {
             setSettingsState({ ...settings, geminiModel: defaultModel });
         } else if (provider === 'claude') {
             setSettingsState({ ...settings, claudeModel: defaultModel });
+        } else if (provider === 'xai') {
+            setSettingsState({ ...settings, xaiModel: defaultModel });
         }
     };
 
@@ -229,6 +237,7 @@ function App() {
                             <option value="gemini">{t('settings_provider_gemini')}</option>
                             <option value="openai">{t('settings_provider_openai')}</option>
                             <option value="claude">{t('settings_provider_claude')}</option>
+                            <option value="xai">{t('settings_provider_xai')}</option>
                         </select>
                     </div>
                     <div className="form-group">
