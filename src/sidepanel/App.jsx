@@ -284,12 +284,14 @@ function App() {
                     placeholder="Type or capture your prompt here..."
                 />
                 <div className="explanation-style-group">
-                    <div className="style-header">
+                    <div
+                        className="style-header"
+                        onClick={() => setIsStyleDropdownOpen(!isStyleDropdownOpen)}
+                    >
                         <label className="section-label">Explanation Style:</label>
                         <span className="current-style">{EXPLANATION_STYLES[explanationStyle]?.label || 'None'}</span>
                         <button
                             className="btn-dropdown-toggle"
-                            onClick={() => setIsStyleDropdownOpen(!isStyleDropdownOpen)}
                             type="button"
                         >
                             {isStyleDropdownOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
