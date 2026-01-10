@@ -182,7 +182,9 @@ function App() {
 
     const handleCopy = () => {
         const finalText = replacePlaceholders(structuredPrompt, placeholderValues);
-        navigator.clipboard.writeText(finalText);
+        // Normalize line breaks to LF to prevent layout issues in web apps
+        const normalizedText = finalText.replace(/\r\n/g, '\n');
+        navigator.clipboard.writeText(normalizedText);
         // Could add a toast here
     };
 
