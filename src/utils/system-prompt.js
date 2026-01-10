@@ -48,10 +48,10 @@ The Structured Prompt must be written in the same language as the user's origina
 ${styleInstruction ? styleInstruction + '\n' : ''}
 When the structured prompt requires user-specific information (e.g., skill level, priorities, specific requirements), use placeholders in the following format:
 - For predefined options: {{Label: [option1, option2, option3]}}
-  Example: {{Skill Level: [Beginner, Intermediate, Advanced, Expert]}}
+  Example: Skill Level: {{Your Skill Level: [Beginner, Intermediate, Advanced, Expert]}}
 - For free-form input: {{Description of what to enter}}
-  Example: {{Your specific project requirements}}
-All placeholder descriptions must be written in the same language as the user's original message.
+  Example: Specific project requirements: {{Your specific project requirements}}
+**All placeholder descriptions must be written in the same language as the user's original message.**
 
 Output your response in the following JSON format ONLY:
 {
