@@ -17,9 +17,9 @@ export const EXPLANATION_STYLES = {
     labelKey: 'style_beginner_friendly',
     instruction: 'The Structured Prompt must require the AI (the final responder) to explain its answers in simple, clear, beginner-friendly language that a middle-school student can easily understand.'
   },
-  technical: {
-    labelKey: 'style_technical',
-    instruction: 'The Structured Prompt must require the AI (the final responder) to provide detailed, technically accurate explanations using appropriate domain-specific terminology.'
+  professional: {
+    labelKey: 'style_professional',
+    instruction: 'The Structured Prompt must require the AI (the final responder) to provide detailed, professional accurate explanations using appropriate domain-specific terminology.'
   },
   concise: {
     labelKey: 'style_concise',
