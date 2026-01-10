@@ -2,7 +2,7 @@
  * Utility functions for parsing and managing placeholders in structured prompts
  * 
  * Placeholder formats:
- * - With options: {{Label: [option1, option2, option3]}}
+ * - With options: {{Label: [option1;; option2;; option3]}}
  * - Free input: {{Description}}
  */
 
@@ -24,7 +24,7 @@ export function extractPlaceholders(text) {
         const content = match[1].trim();
         const raw = match[0];
 
-        // Check if it contains options (format: "Label: [option1, option2]")
+        // Check if it contains options (format: "Label: [option1;; option2;; option3]")
         const optionsMatch = content.match(/^(.+?):\s*\[(.+?)\]$/);
 
         let label, options;
@@ -32,7 +32,7 @@ export function extractPlaceholders(text) {
             // Has predefined options
             label = optionsMatch[1].trim();
             options = optionsMatch[2]
-                .split(',')
+                .split(';;')
                 .map(opt => opt.trim())
                 .filter(opt => opt.length > 0);
         } else {
