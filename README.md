@@ -61,7 +61,8 @@ prompt-improving/
 │   │   ├── App.jsx
 │   │   └── App.css
 │   └── utils/                 # ユーティリティ（API呼び出し）
-│       └── llm.js
+│       ├── llm.js             # LLM API呼び出し
+│       └── system-prompt.js   # AIのシステムプロンプト
 ├── public/
 │   └── icons/                 # 拡張機能のアイコン
 └── dist/                      # ビルド出力（Chromeに読み込むフォルダ）

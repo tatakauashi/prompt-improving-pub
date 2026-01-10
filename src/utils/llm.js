@@ -1,3 +1,4 @@
+import { systemPrompt } from './system-prompt.js';
 
 export const saveSettings = async (settings) => {
     await chrome.storage.local.set(settings);
@@ -13,18 +14,6 @@ export const improvePrompt = async (currentPrompt, settings) => {
     if (!apiKey) {
         throw new Error('API Key is missing.');
     }
-
-    const systemPrompt = `
-You are a professional Prompt Engineer. Your task is to review the user's prompt and provide:
-1. Improvement Points: What is missing, ambiguous, or could be better.
-2. Structured Prompt: A rewritten version of the prompt using best practices (e.g., clear context, constraints, output format).
-
-Output your response in the following JSON format ONLY:
-{
-  "improvementPoints": ["point 1", "point 2", ...],
-  "structuredPrompt": "The full rewritten prompt..."
-}
-`;
 
     if (provider === 'openai') {
         return await callOpenAI(apiKey, model || 'gpt-4o', systemPrompt, currentPrompt);
