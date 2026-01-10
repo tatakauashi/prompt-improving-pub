@@ -16,9 +16,11 @@ export const improvePrompt = async (currentPrompt, settings) => {
     }
 
     if (provider === 'openai') {
-        return await callOpenAI(apiKey, model || 'gpt-4o', systemPrompt, currentPrompt);
+        return await callOpenAI(apiKey, model || 'gpt-5-2025-08-07', systemPrompt, currentPrompt);
     } else if (provider === 'gemini') {
-        return await callGemini(apiKey, model || 'gemini-1.5-pro', systemPrompt, currentPrompt);
+        return await callGemini(apiKey, model || 'gemini-2.5-pro', systemPrompt, currentPrompt);
+    } else if (provider === 'claude') {
+        return await callClaude(apiKey, model || 'claude-3-5-sonnet-20241022', systemPrompt, currentPrompt);
     } else {
         throw new Error('Invalid provider selected.');
     }
@@ -81,6 +83,44 @@ async function callGemini(apiKey, model, systemPrompt, userPrompt) {
     const data = await response.json();
     try {
         return JSON.parse(data.candidates[0].content.parts[0].text);
+    } catch (e) {
+        throw new Error('Failed to parse AI response as JSON.');
+    }
+}
+
+async function callClaude(apiKey, model, systemPrompt, userPrompt) {
+    // Anthropic Claude API
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': apiKey,
+            'anthropic-version': '2023-06-01',
+            'anthropic-dangerous-direct-browser-access': true
+        },
+        body: JSON.stringify({
+            model: model,
+            max_tokens: 4096,
+            system: systemPrompt,
+            messages: [
+                { role: 'user', content: userPrompt }
+            ]
+        })
+    });
+
+    if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error?.message || 'Claude API Error');
+    }
+
+    const data = await response.json();
+    try {
+        // Claude returns content in data.content[0].text
+        const responseText = data.content[0].text;
+        if (responseText.startsWith('```json') && responseText.endsWith('```')) {
+            return JSON.parse(responseText.slice(7, -3));
+        }
+        return JSON.parse(responseText);
     } catch (e) {
         throw new Error('Failed to parse AI response as JSON.');
     }

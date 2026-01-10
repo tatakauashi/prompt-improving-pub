@@ -5,7 +5,7 @@ AIプロンプトの品質を向上させるためのChrome拡張機能です。
 ## 機能
 
 - 📝 **プロンプトキャプチャ**: ChatGPTやClaudeなどのAI画面から入力中のテキストを取得
-- ✨ **AI改善提案**: Google GeminiやOpenAI APIを使用してプロンプトを分析し、改善ポイントを提示
+- ✨ **AI改善提案**: Google Gemini、OpenAI、またはAnthropic Claude APIを使用してプロンプトを分析し、改善ポイントを提示
 - 🔧 **構造化プロンプト**: より効果的な構造化されたプロンプトを自動生成
 - 📋 **編集可能**: 生成された構造化プロンプトは自由に編集可能
 - 📎 **クリップボードコピー**: ワンクリックでコピーして元のチャット画面に貼り付け
@@ -32,12 +32,13 @@ npm run build
 2. 設定画面でAPIキーを入力:
    - **Google Gemini**: [Google AI Studio](https://aistudio.google.com/) でAPIキーを取得
    - **OpenAI**: [OpenAI Platform](https://platform.openai.com/) でAPIキーを取得
+   - **Anthropic Claude**: [Anthropic Console](https://console.anthropic.com/) でAPIキーを取得
 3. 使用するプロバイダとモデルを選択
 4. 「Save Settings」をクリック
 
 ## 使い方
 
-1. ChatGPT (chatgpt.com) または Claude (claude.ai) にアクセス
+1. ChatGPT (chatgpt.com)、Claude (claude.ai)、または Gemini (gemini.google.com) にアクセス
 2. チャット入力欄にプロンプトを入力
 3. 拡張機能のサイドパネルを開く
 4. **「Capture」** ボタンをクリックして入力テキストを取得
@@ -73,7 +74,7 @@ prompt-improving/
 - **フレームワーク**: React (Vite)
 - **スタイル**: Vanilla CSS
 - **Chrome APIs**: Side Panel API, Storage API, Scripting API
-- **AI SDK**: Google Gemini API, OpenAI API
+- **AI SDK**: Google Gemini API, OpenAI API, Anthropic Claude API
 
 ## 開発
 

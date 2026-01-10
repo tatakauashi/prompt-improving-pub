@@ -7,8 +7,8 @@ function App() {
     const [view, setView] = useState('main'); // 'main' | 'settings'
     const [settings, setSettingsState] = useState({
         apiKey: '',
-        provider: 'gemini', // 'gemini' | 'openai'
-        model: 'gemini-1.5-pro'
+        provider: 'gemini', // 'gemini' | 'openai' | 'claude'
+        model: 'gemini-2.5-pro'
     });
     const [currentPrompt, setCurrentPrompt] = useState('');
     const [improvementPoints, setImprovementPoints] = useState([]);
@@ -108,6 +108,7 @@ function App() {
                         >
                             <option value="gemini">Google Gemini</option>
                             <option value="openai">OpenAI</option>
+                            <option value="claude">Anthropic Claude</option>
                         </select>
                     </div>
                     <div className="form-group">
@@ -125,7 +126,11 @@ function App() {
                             type="text"
                             value={settings.model}
                             onChange={(e) => setSettingsState({ ...settings, model: e.target.value })}
-                            placeholder={settings.provider === 'gemini' ? 'gemini-1.5-pro' : 'gpt-4o'}
+                            placeholder={
+                                settings.provider === 'gemini' ? 'gemini-1.5-pro' :
+                                    settings.provider === 'openai' ? 'gpt-4o' :
+                                        'claude-3-5-sonnet-20241022'
+                            }
                         />
                     </div>
                     <button className="btn btn-primary" onClick={handleSaveSettings}>
