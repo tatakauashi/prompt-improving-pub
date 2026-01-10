@@ -1,19 +1,21 @@
-import { systemPrompt } from './system-prompt.js';
+import { getSystemPrompt } from './system-prompt.js';
 
 export const saveSettings = async (settings) => {
     await chrome.storage.local.set(settings);
 };
 
 export const getSettings = async () => {
-    return await chrome.storage.local.get(['apiKey', 'provider', 'openaiModel', 'geminiModel', 'claudeModel']);
+    return await chrome.storage.local.get(['apiKey', 'provider', 'openaiModel', 'geminiModel', 'claudeModel', 'explanationStyle']);
 };
 
 export const improvePrompt = async (currentPrompt, settings) => {
-    const { apiKey, provider, model } = settings;
+    const { apiKey, provider, model, explanationStyle } = settings;
 
     if (!apiKey) {
         throw new Error('API Key is missing.');
     }
+
+    const systemPrompt = getSystemPrompt(explanationStyle || 'beginnerFriendly');
 
     if (provider === 'openai') {
         return await callOpenAI(apiKey, model || 'gpt-5', systemPrompt, currentPrompt);

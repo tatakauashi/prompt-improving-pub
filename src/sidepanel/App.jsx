@@ -3,6 +3,7 @@ import { Settings, Sparkles, Copy, ArrowRight, Save, X, MessageSquare, Loader2, 
 import './App.css';
 import { saveSettings, getSettings, improvePrompt } from '../utils/llm';
 import { extractPlaceholders, replacePlaceholders, areAllPlaceholdersFilled } from '../utils/placeholder-parser';
+import { EXPLANATION_STYLES } from '../utils/system-prompt';
 import PlaceholderModal from './PlaceholderModal';
 
 // Default models for each provider
@@ -32,6 +33,9 @@ function App() {
     const [placeholderValues, setPlaceholderValues] = useState({});
     const [isModalOpen, setIsModalOpen] = useState(false);
 
+    // Explanation style state
+    const [explanationStyle, setExplanationStyle] = useState('beginnerFriendly');
+
     // Helper function to get current model based on provider
     const getCurrentModel = () => {
         const { provider, openaiModel, geminiModel, claudeModel } = settings;
@@ -56,6 +60,7 @@ function App() {
                 geminiModel: s.geminiModel || DEFAULT_MODELS.gemini,
                 claudeModel: s.claudeModel || DEFAULT_MODELS.claude
             });
+            setExplanationStyle(s.explanationStyle || 'beginnerFriendly');
         } else {
             setView('settings');
         }
@@ -86,6 +91,11 @@ function App() {
         } else if (provider === 'claude') {
             setSettingsState({ ...settings, claudeModel: defaultModel });
         }
+    };
+
+    const handleStyleChange = async (newStyle) => {
+        setExplanationStyle(newStyle);
+        await chrome.storage.local.set({ explanationStyle: newStyle });
     };
 
     const handleSaveSettings = async () => {
@@ -140,7 +150,8 @@ function App() {
             const settingsForAPI = {
                 apiKey: settings.apiKey,
                 provider: settings.provider,
-                model: getCurrentModel()
+                model: getCurrentModel(),
+                explanationStyle: explanationStyle
             };
             const result = await improvePrompt(currentPrompt, settingsForAPI);
             setImprovementPoints(result.improvementPoints || []);
@@ -253,7 +264,24 @@ function App() {
                     onChange={(e) => setCurrentPrompt(e.target.value)}
                     placeholder="Type or capture your prompt here..."
                 />
-                <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                <div className="explanation-style-group">
+                    <label className="section-label">Explanation Style:</label>
+                    <div className="radio-group">
+                        {Object.entries(EXPLANATION_STYLES).map(([key, config]) => (
+                            <label key={key} className="radio-label">
+                                <input
+                                    type="radio"
+                                    name="explanationStyle"
+                                    value={key}
+                                    checked={explanationStyle === key}
+                                    onChange={(e) => handleStyleChange(e.target.value)}
+                                />
+                                <span>{config.label}</span>
+                            </label>
+                        ))}
+                    </div>
+                </div>
+                <div style={{ display: 'flex', gap: '8px' }}>
                     <button className="btn btn-secondary" onClick={handleCapture}>
                         <ArrowRight size={16} /> Capture
                     </button>

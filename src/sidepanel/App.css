@@ -89,6 +89,17 @@ body {
   background: #e5e7eb;
 }
 
+.btn-warning {
+  background: linear-gradient(135deg, #f59e0b, #f97316);
+  color: white;
+  font-weight: 600;
+}
+
+.btn-warning:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
 .btn-icon {
   padding: 8px;
   width: auto;
@@ -198,4 +209,50 @@ textarea:focus {
   to {
     transform: rotate(360deg);
   }
+}
+
+.explanation-style-group {
+  margin: 12px 0;
+  padding: 10px;
+  background: #f9fafb;
+  border-radius: 6px;
+}
+
+.section-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.radio-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.radio-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #374151;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+.radio-label:hover {
+  background: #e5e7eb;
+}
+
+.radio-label input[type="radio"] {
+  cursor: pointer;
+  margin: 0;
+  flex-shrink: 0;
 }

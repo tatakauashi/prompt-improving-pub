@@ -4,13 +4,48 @@
  * This prompt instructs the AI to act as a professional Prompt Engineer
  * and provide structured feedback on user prompts.
  */
-export const systemPrompt = `
+
+/**
+ * Available explanation style options
+ */
+export const EXPLANATION_STYLES = {
+  none: {
+    label: 'None',
+    instruction: ''
+  },
+  beginnerFriendly: {
+    label: 'Beginner-Friendly',
+    instruction: 'The Structured Prompt must require the AI (the final responder) to explain its answers in simple, clear, beginner-friendly language that a middle-school student can easily understand.'
+  },
+  eli5: {
+    label: 'ELI5 (Like I\'m 5)',
+    instruction: 'The Structured Prompt must require the AI (the final responder) to explain its answers as if explaining to a 5-year-old child, using very simple words and everyday examples.'
+  },
+  technical: {
+    label: 'Technical',
+    instruction: 'The Structured Prompt must require the AI (the final responder) to provide detailed, technically accurate explanations using appropriate domain-specific terminology.'
+  },
+  concise: {
+    label: 'Concise',
+    instruction: 'The Structured Prompt must require the AI (the final responder) to provide concise, to-the-point explanations without unnecessary details.'
+  }
+};
+
+/**
+ * Generates system prompt with optional explanation style
+ * @param {string} explanationStyle - The explanation style to use (default: 'beginnerFriendly')
+ * @returns {string} The complete system prompt
+ */
+export function getSystemPrompt(explanationStyle = 'beginnerFriendly') {
+  const styleConfig = EXPLANATION_STYLES[explanationStyle];
+  const styleInstruction = styleConfig ? styleConfig.instruction : '';
+
+  return `
 You are a professional Prompt Engineer. Your task is to review the user's prompt and provide:
 1. Improvement Points: What is missing, ambiguous, or could be better.
 2. Structured Prompt: A rewritten version of the prompt using best practices (e.g., clear context, constraints, output format).
 The Structured Prompt must be written in the same language as the user's original message (unless the user explicitly requests another language).
-The Structured Prompt must require the AI (the final responder) to explain its answers in **simple, clear, beginner-friendly language that a middle-school student can easily understand**.
-
+${styleInstruction ? styleInstruction + '\n' : ''}
 When the structured prompt requires user-specific information (e.g., skill level, priorities, specific requirements), use placeholders in the following format:
 - For predefined options: {{Label: [option1, option2, option3]}}
   Example: {{Skill Level: [Beginner, Intermediate, Advanced, Expert]}}
@@ -24,3 +59,10 @@ Output your response in the following JSON format ONLY:
   "structuredPrompt": "The full rewritten prompt..."
 }
 `;
+}
+
+/**
+ * Default system prompt for backward compatibility
+ */
+export const systemPrompt = getSystemPrompt('beginnerFriendly');
+
