@@ -76,6 +76,9 @@ prompt-improving/
 
 ## 開発
 
+このプロジェクトでは、ビルド時のファイルコピーに [shx](https://github.com/shelljs/shx) を使用しています。
+`shx` は `devDependencies` に含まれているため、通常は以下のコマンドだけで開発環境が整います。
+
 ### 開発サーバーの起動
 
 ```bash
