@@ -18,7 +18,7 @@ export const improvePrompt = async (currentPrompt, settings) => {
     const systemPrompt = getSystemPrompt(explanationStyle || 'beginnerFriendly');
 
     if (provider === 'openai') {
-        return await callOpenAI(apiKey, model || 'gpt-5', systemPrompt, currentPrompt);
+        return await callOpenAI(apiKey, model || 'gpt-5-mini', systemPrompt, currentPrompt);
     } else if (provider === 'gemini') {
         return await callGemini(apiKey, model || 'gemini-2.5-pro', systemPrompt, currentPrompt);
     } else if (provider === 'claude') {

@@ -9,7 +9,7 @@ import useTranslation from '../hooks/useTranslation';
 
 // Default models for each provider
 const DEFAULT_MODELS = {
-    openai: 'gpt-5',
+    openai: 'gpt-5-mini',
     gemini: 'gemini-2.5-pro',
     claude: 'claude-sonnet-4-5',
     xai: 'grok-4-0709'
