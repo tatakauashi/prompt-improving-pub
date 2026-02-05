@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Settings, Sparkles, Copy, ArrowRight, Save, X, MessageSquare, Loader2, Edit3, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
 import './App.css';
 import { saveSettings, getSettings, improvePrompt } from '../utils/llm';
@@ -39,6 +39,16 @@ function App() {
     // Explanation style state
     const [explanationStyle, setExplanationStyle] = useState('beginnerFriendly');
     const [isStyleDropdownOpen, setIsStyleDropdownOpen] = useState(false);
+
+    // Resizable divider state (Main)
+    const [topHeightPercentage, setTopHeightPercentage] = useState(50);
+    const [isDragging, setIsDragging] = useState(false);
+    const containerRef = useRef(null);
+
+    // Resizable divider state (Inner: Suggestions vs Structured Prompt)
+    const [suggestionsHeightPercentage, setSuggestionsHeightPercentage] = useState(40);
+    const [isInnerDragging, setIsInnerDragging] = useState(false);
+    const innerContainerRef = useRef(null);
 
     // Translation hook
     const { t, currentLanguage, changeLanguage, supportedLanguages } = useTranslation();
@@ -219,6 +229,101 @@ function App() {
 
     const allPlaceholdersFilled = areAllPlaceholdersFilled(placeholders, placeholderValues);
     const hasPlaceholders = placeholders.length > 0;
+    const hasResults = improvementPoints.length > 0 || structuredPrompt;
+
+    // Resizing logic
+    const handleMouseDown = (e) => {
+        e.preventDefault();
+        setIsDragging(true);
+    };
+
+    useEffect(() => {
+        const handleMouseMove = (e) => {
+            if (!isDragging || !containerRef.current) return;
+
+            const containerRect = containerRef.current.getBoundingClientRect();
+            // Calculate relative Y position within the container
+            // The container starts after the header
+            const relativeY = e.clientY - containerRect.top;
+            const newPercentage = (relativeY / containerRect.height) * 100;
+
+            // Clamp between 20% and 80% to ensure both panels remain usable
+            const clamped = Math.min(Math.max(newPercentage, 20), 80);
+            setTopHeightPercentage(clamped);
+        };
+
+        const handleMouseUp = () => {
+            setIsDragging(false);
+        };
+
+        if (isDragging) {
+            window.addEventListener('mousemove', handleMouseMove);
+            window.addEventListener('mouseup', handleMouseUp);
+            // Add a class to body to enforce cursor style during drag
+            document.body.style.cursor = 'row-resize';
+            document.body.style.userSelect = 'none';
+        } else {
+            if (!isInnerDragging) {
+                document.body.style.cursor = '';
+                document.body.style.userSelect = '';
+            }
+        }
+
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('mouseup', handleMouseUp);
+            if (isDragging) {
+                document.body.style.cursor = '';
+                document.body.style.userSelect = '';
+            }
+        };
+    }, [isDragging, isInnerDragging]);
+
+    // Inner Resizing logic
+    const handleInnerMouseDown = (e) => {
+        e.preventDefault();
+        e.stopPropagation(); // Prevent bubbling to outer resizer
+        setIsInnerDragging(true);
+    };
+
+    useEffect(() => {
+        const handleInnerMouseMove = (e) => {
+            if (!isInnerDragging || !innerContainerRef.current) return;
+
+            const containerRect = innerContainerRef.current.getBoundingClientRect();
+            const relativeY = e.clientY - containerRect.top;
+            const newPercentage = (relativeY / containerRect.height) * 100;
+
+            // Clamp between 20% and 80%
+            const clamped = Math.min(Math.max(newPercentage, 20), 80);
+            setSuggestionsHeightPercentage(clamped);
+        };
+
+        const handleInnerMouseUp = () => {
+            setIsInnerDragging(false);
+        };
+
+        if (isInnerDragging) {
+            window.addEventListener('mousemove', handleInnerMouseMove);
+            window.addEventListener('mouseup', handleInnerMouseUp);
+            document.body.style.cursor = 'row-resize';
+            document.body.style.userSelect = 'none';
+        } else {
+            if (!isDragging) {
+                document.body.style.cursor = '';
+                document.body.style.userSelect = '';
+            }
+        }
+
+        return () => {
+            window.removeEventListener('mousemove', handleInnerMouseMove);
+            window.removeEventListener('mouseup', handleInnerMouseUp);
+            if (isInnerDragging) {
+                document.body.style.cursor = '';
+                document.body.style.userSelect = '';
+            }
+        };
+    }, [isInnerDragging, isDragging]);
 
     if (view === 'settings') {
         return (
@@ -302,118 +407,174 @@ function App() {
                 <button className="btn-icon" onClick={() => setView('settings')}><Settings size={20} /></button>
             </div>
 
-            <div className="card">
-                <label style={{ fontSize: '12px', color: '#666', marginBottom: '4px', display: 'block' }}>{t('main_original_prompt')}</label>
-                <textarea
-                    value={currentPrompt}
-                    onChange={(e) => setCurrentPrompt(e.target.value)}
-                    placeholder={t('main_prompt_placeholder')}
-                />
-                <div className="explanation-style-group">
-                    <div
-                        className="style-header"
-                        onClick={() => setIsStyleDropdownOpen(!isStyleDropdownOpen)}
-                    >
-                        <label className="section-label">{t('main_explanation_style')}</label>
-                        <span className="current-style">{EXPLANATION_STYLES[explanationStyle]?.labelKey ? t(EXPLANATION_STYLES[explanationStyle].labelKey) : t('style_none')}</span>
-                        <button
-                            className="btn-dropdown-toggle"
-                            type="button"
+            <div
+                className="content-area"
+                ref={containerRef}
+                style={{
+                    flex: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    minHeight: 0,
+                    overflow: 'hidden' // Prevent container itself from scrolling
+                }}
+            >
+                <div
+                    className="card input-section"
+                    style={{
+                        flex: hasResults ? `0 0 ${topHeightPercentage}%` : '1',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        minHeight: 0,
+                        transition: isDragging ? 'none' : 'flex-basis 0.2s ease'
+                    }}
+                >
+                    <label style={{ fontSize: '12px', color: '#666', marginBottom: '4px', display: 'block' }}>{t('main_original_prompt')}</label>
+                    <textarea
+                        value={currentPrompt}
+                        onChange={(e) => setCurrentPrompt(e.target.value)}
+                        placeholder={t('main_prompt_placeholder')}
+                        style={{ flex: 1, minHeight: '60px' }} // Allow textarea to shrink more
+                    />
+                    <div className="explanation-style-group" style={{ flexShrink: 0 }}>
+                        <div
+                            className="style-header"
+                            onClick={() => setIsStyleDropdownOpen(!isStyleDropdownOpen)}
                         >
-                            {isStyleDropdownOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                            <label className="section-label">{t('main_explanation_style')}</label>
+                            <span className="current-style">{EXPLANATION_STYLES[explanationStyle]?.labelKey ? t(EXPLANATION_STYLES[explanationStyle].labelKey) : t('style_none')}</span>
+                            <button
+                                className="btn-dropdown-toggle"
+                                type="button"
+                            >
+                                {isStyleDropdownOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                            </button>
+                        </div>
+                        <div
+                            className="radio-group"
+                            style={{
+                                maxHeight: isStyleDropdownOpen ? '500px' : '0',
+                                opacity: isStyleDropdownOpen ? 1 : 0,
+                                marginTop: isStyleDropdownOpen ? '8px' : '0'
+                            }}
+                        >
+                            {Object.entries(EXPLANATION_STYLES).map(([key, config]) => (
+                                <label key={key} className="radio-label">
+                                    <input
+                                        type="radio"
+                                        name="explanationStyle"
+                                        value={key}
+                                        checked={explanationStyle === key}
+                                        onChange={(e) => handleStyleChange(e.target.value)}
+                                    />
+                                    <span>{t(config.labelKey)}</span>
+                                </label>
+                            ))}
+                        </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+                        <button className="btn btn-secondary" onClick={handleCapture}>
+                            <ArrowRight size={16} /> {t('main_capture')}
+                        </button>
+                        <button className="btn btn-primary" onClick={handleImprove} disabled={isLoading}>
+                            {isLoading ? <Loader2 size={16} className="loading-spinner" /> : <Sparkles size={16} />}
+                            {isLoading ? t('main_improving') : t('main_improve')}
                         </button>
                     </div>
-                    <div
-                        className="radio-group"
-                        style={{
-                            maxHeight: isStyleDropdownOpen ? '500px' : '0',
-                            opacity: isStyleDropdownOpen ? 1 : 0,
-                            marginTop: isStyleDropdownOpen ? '8px' : '0'
-                        }}
-                    >
-                        {Object.entries(EXPLANATION_STYLES).map(([key, config]) => (
-                            <label key={key} className="radio-label">
-                                <input
-                                    type="radio"
-                                    name="explanationStyle"
-                                    value={key}
-                                    checked={explanationStyle === key}
-                                    onChange={(e) => handleStyleChange(e.target.value)}
-                                />
-                                <span>{t(config.labelKey)}</span>
-                            </label>
-                        ))}
-                    </div>
+                    {error && <div style={{ color: 'red', fontSize: '12px', marginTop: '8px', flexShrink: 0 }}>{error}</div>}
                 </div>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                    <button className="btn btn-secondary" onClick={handleCapture}>
-                        <ArrowRight size={16} /> {t('main_capture')}
-                    </button>
-                    <button className="btn btn-primary" onClick={handleImprove} disabled={isLoading}>
-                        {isLoading ? <Loader2 size={16} className="loading-spinner" /> : <Sparkles size={16} />}
-                        {isLoading ? t('main_improving') : t('main_improve')}
-                    </button>
-                </div>
-                {error && <div style={{ color: 'red', fontSize: '12px', marginTop: '8px' }}>{error}</div>}
-            </div>
 
-            {(improvementPoints.length > 0 || structuredPrompt) && (
-                <div className="card result-container">
-                    {improvementPoints.length > 0 && (
-                        <div style={{ marginBottom: '12px' }}>
-                            <label style={{ fontSize: '12px', color: '#666', marginBottom: '4px', display: 'block' }}>{t('main_suggestions')}</label>
-                            <ul className="improvement-list">
-                                {improvementPoints.map((point, i) => (
-                                    <li key={i} className="improvement-item">{point}</li>
-                                ))}
-                            </ul>
+                {hasResults && (
+                    <>
+                        <div className="resizer" onMouseDown={handleMouseDown}>
+                            <div className="resizer-handle-bar"></div>
                         </div>
-                    )}
 
-                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-                        <label style={{ fontSize: '12px', color: '#666', marginBottom: '4px', display: 'block' }}>{t('main_structured_prompt')}</label>
-                        <textarea
-                            style={{ flex: 1, minHeight: '150px' }}
-                            value={structuredPrompt}
-                            onChange={(e) => setStructuredPrompt(e.target.value)}
-                        />
-                        {hasPlaceholders && !allPlaceholdersFilled ? (
-                            <button
-                                className="btn btn-warning"
-                                style={{ marginTop: '8px' }}
-                                onClick={handleOpenModal}
-                            >
-                                <Edit3 size={16} /> {t('main_edit_prompt')}
-                            </button>
-                        ) : hasPlaceholders ? (
-                            <>
-                                <button
-                                    className="btn btn-info"
-                                    style={{ marginTop: '8px' }}
-                                    onClick={handleOpenModal}
-                                >
-                                    <RefreshCw size={16} /> {t('main_re_edit_prompt')}
-                                </button>
-                                <button
-                                    className="btn btn-secondary"
-                                    style={{ marginTop: '8px' }}
-                                    onClick={handleCopy}
-                                >
-                                    <Copy size={16} /> {t('main_copy_clipboard')}
-                                </button>
-                            </>
-                        ) : (
-                            <button
-                                className="btn btn-secondary"
-                                style={{ marginTop: '8px' }}
-                                onClick={handleCopy}
-                            >
-                                <Copy size={16} /> {t('main_copy_clipboard')}
-                            </button>
-                        )}
-                    </div>
-                </div>
-            )}
+                        <div
+                            className="card result-container"
+                            ref={innerContainerRef}
+                            style={{
+                                flex: 1, // Takes remaining space
+                                display: 'flex',
+                                flexDirection: 'column',
+                                minHeight: 0 // Allow scrolling inside
+                            }}
+                        >
+                            {improvementPoints.length > 0 && (
+                                <>
+                                    <div
+                                        style={{
+                                            marginBottom: '0', // Removed margin bottom as we control spacing with flex
+                                            flex: structuredPrompt ? `0 0 ${suggestionsHeightPercentage}%` : '1',
+                                            minHeight: 0, // Allow scrolling
+                                            overflowY: 'auto',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            transition: isInnerDragging ? 'none' : 'flex-basis 0.2s ease'
+                                        }}
+                                    >
+                                        <label style={{ fontSize: '12px', color: '#666', marginBottom: '4px', display: 'block', flexShrink: 0 }}>{t('main_suggestions')}</label>
+                                        <ul className="improvement-list" style={{ flex: 1, maxHeight: 'none' }}>
+                                            {improvementPoints.map((point, i) => (
+                                                <li key={i} className="improvement-item">{point}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                    {structuredPrompt && (
+                                        <div className="resizer" onMouseDown={handleInnerMouseDown}>
+                                            <div className="resizer-handle-bar"></div>
+                                        </div>
+                                    )}
+                                </>
+                            )}
+
+                            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+                                <label style={{ fontSize: '12px', color: '#666', marginBottom: '4px', display: 'block' }}>{t('main_structured_prompt')}</label>
+                                <textarea
+                                    style={{ flex: 1, minHeight: '60px' }}
+                                    value={structuredPrompt}
+                                    onChange={(e) => setStructuredPrompt(e.target.value)}
+                                />
+                                <div style={{ flexShrink: 0 }}>
+                                    {hasPlaceholders && !allPlaceholdersFilled ? (
+                                        <button
+                                            className="btn btn-warning"
+                                            style={{ marginTop: '8px' }}
+                                            onClick={handleOpenModal}
+                                        >
+                                            <Edit3 size={16} /> {t('main_edit_prompt')}
+                                        </button>
+                                    ) : hasPlaceholders ? (
+                                        <>
+                                            <button
+                                                className="btn btn-info"
+                                                style={{ marginTop: '8px' }}
+                                                onClick={handleOpenModal}
+                                            >
+                                                <RefreshCw size={16} /> {t('main_re_edit_prompt')}
+                                            </button>
+                                            <button
+                                                className="btn btn-secondary"
+                                                style={{ marginTop: '8px' }}
+                                                onClick={handleCopy}
+                                            >
+                                                <Copy size={16} /> {t('main_copy_clipboard')}
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <button
+                                            className="btn btn-secondary"
+                                            style={{ marginTop: '8px' }}
+                                            onClick={handleCopy}
+                                        >
+                                            <Copy size={16} /> {t('main_copy_clipboard')}
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </>
+                )}
+            </div>
 
             <PlaceholderModal
                 isOpen={isModalOpen}

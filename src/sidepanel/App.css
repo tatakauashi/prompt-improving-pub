@@ -303,3 +303,39 @@ textarea:focus {
   margin: 0;
   flex-shrink: 0;
 }
+/* Resizer styles */
+.resizer {
+  height: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: row-resize;
+  flex-shrink: 0;
+  transition: background-color 0.2s;
+  background-color: transparent;
+  margin: 2px 0;
+  z-index: 10;
+}
+
+.resizer:hover, .resizer:active {
+  background-color: rgba(99, 102, 241, 0.05);
+}
+
+.resizer-handle-bar {
+  width: 48px;
+  height: 4px;
+  background-color: #e5e7eb;
+  border-radius: 2px;
+  transition: background-color 0.2s;
+}
+
+.resizer:hover .resizer-handle-bar,
+.resizer:active .resizer-handle-bar {
+  background-color: var(--primary-color);
+}
+
+/* Ensure cards inside the resizable area behave correctly */
+.input-section, .result-container {
+  /* These are now flex items managed by inline styles for sizing */
+  /* We just ensure they look like cards */
+}
