@@ -29,23 +29,24 @@ npm run build
 ## 初期設定
 
 1. 拡張機能アイコンをクリックしてサイドパネルを開く
-2. 設定画面でAPIキーを入力:
+2. 設定画面でAPIキーを入力（どれか一つでOK）:
    - **Google Gemini**: [Google AI Studio](https://aistudio.google.com/) でAPIキーを取得
    - **OpenAI**: [OpenAI Platform](https://platform.openai.com/) でAPIキーを取得
    - **Anthropic Claude**: [Anthropic Console](https://console.anthropic.com/) でAPIキーを取得
+   - **Grok AI**: [xAI Console](https://console.x.ai/) でAPIキーを取得
 3. 使用するプロバイダとモデルを選択
 4. 「Save Settings」をクリック
 
 ## 使い方
 
-1. ChatGPT (chatgpt.com)、Claude (claude.ai)、または Gemini (gemini.google.com) にアクセス
+1. 拡張機能のサイドパネルを開く
 2. チャット入力欄にプロンプトを入力
-3. 拡張機能のサイドパネルを開く
-4. **「Capture」** ボタンをクリックして入力テキストを取得
-5. **「Improve」** ボタンをクリック
-6. AIによる改善提案と構造化されたプロンプトを確認
-7. 必要に応じて構造化プロンプトを編集
-8. **「Copy to Clipboard」** でコピーして元の画面に貼り付け
+3. **「Improve」** ボタンをクリック
+4. AIによる改善提案と構造化されたプロンプトを確認
+5. 必要に応じて構造化プロンプトを編集
+6. **「Copy to Clipboard」** でクリップボードにコピー
+7. 必要に応じてサクラエディタなどで構造化プロンプトの改行コードを CRLF から LF に変更
+8. ChatGPT (chatgpt.com)、Claude (claude.ai)、または Gemini (gemini.google.com) などにアクセスしてチャット入力欄に貼り付け
 
 ## プロジェクト構造
 
@@ -74,24 +75,30 @@ prompt-improving/
 - **フレームワーク**: React (Vite)
 - **スタイル**: Vanilla CSS
 - **Chrome APIs**: Side Panel API, Storage API, Scripting API
-- **AI SDK**: Google Gemini API, OpenAI API, Anthropic Claude API
+- **AI SDK**: Google Gemini API, OpenAI API, Anthropic Claude API, Grok AI API
 
 ## 開発
 
 このプロジェクトでは、ビルド時のファイルコピーに [shx](https://github.com/shelljs/shx) を使用しています。
 `shx` は `devDependencies` に含まれているため、通常は以下のコマンドだけで開発環境が整います。
 
-### 開発サーバーの起動
+### 開発時のビルド
+
+ビルドにはウォッチモードで変更と同時にビルドする方法と、変更後のみビルドする方法があります。
+
+ウォッチモードで変更と同時にビルドする方法:
 
 ```bash
 npm run dev
 ```
 
-### ビルド
+変更後のみビルドする方法:
 
 ```bash
 npm run build
 ```
+
+ビルド後は、`chrome://extensions/` で拡張機能のリロードボタン(🔄)をクリックして変更を反映してください。
 
 ### リント
 
