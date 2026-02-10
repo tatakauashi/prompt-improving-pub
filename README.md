@@ -53,11 +53,20 @@ npm run build
 ```
 prompt-improving/
 ├── manifest.json              # Chrome拡張機能のマニフェスト
+├── _locales/                  # Chrome拡張機能のメタデータ翻訳
+│   ├── en/
+│   │   └── messages.json      # 英語メタデータ
+│   └── ja/
+│       └── messages.json      # 日本語メタデータ
 ├── src/
 │   ├── background/            # バックグラウンドスクリプト
 │   │   └── index.js
 │   ├── content/               # コンテンツスクリプト（ページ上のDOM操作）
 │   │   └── index.js
+│   ├── locales/               # UI翻訳ファイル
+│   │   ├── index.js           # 言語設定とインポート
+│   │   ├── en.json            # 英語UI翻訳
+│   │   └── ja.json            # 日本語UI翻訳
 │   ├── sidepanel/             # サイドパネルUI（React）
 │   │   ├── index.html
 │   │   ├── App.jsx
@@ -65,6 +74,8 @@ prompt-improving/
 │   └── utils/                 # ユーティリティ（API呼び出し）
 │       ├── llm.js             # LLM API呼び出し
 │       └── system-prompt.js   # AIのシステムプロンプト
+├── scripts/
+│   └── check-i18n.js          # 翻訳の完全性チェックスクリプト
 ├── public/
 │   └── icons/                 # 拡張機能のアイコン
 └── dist/                      # ビルド出力（Chromeに読み込むフォルダ）
