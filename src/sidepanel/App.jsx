@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Settings, Sparkles, Copy, ArrowRight, Save, X, MessageSquare, Loader2, Edit3, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
+import { Settings, Sparkles, Copy, ArrowRight, Save, X, MessageSquare, Loader2, Edit3, ChevronDown, ChevronUp, RefreshCw, Paperclip, File, FileText, Image as ImageIcon } from 'lucide-react';
 import './App.css';
 import { saveSettings, getSettings, improvePrompt } from '../utils/llm';
 import { extractPlaceholders, replacePlaceholders, areAllPlaceholdersFilled } from '../utils/placeholder-parser';
 import { EXPLANATION_STYLES } from '../utils/system-prompt';
 import PlaceholderModal from './PlaceholderModal';
+import ConfirmDialog from './ConfirmDialog';
 import useTranslation from '../hooks/useTranslation';
 
 // Default models for each provider
@@ -49,6 +50,12 @@ function App() {
     const [suggestionsHeightPercentage, setSuggestionsHeightPercentage] = useState(40);
     const [isInnerDragging, setIsInnerDragging] = useState(false);
     const innerContainerRef = useRef(null);
+
+    // File attachment state
+    const [attachedFiles, setAttachedFiles] = useState([]);
+    const [fileToDelete, setFileToDelete] = useState(null);
+    const [isDraggingOver, setIsDraggingOver] = useState(false);
+    const fileInputRef = useRef(null);
 
     // Translation hook
     const { t, currentLanguage, changeLanguage, supportedLanguages } = useTranslation();
@@ -176,7 +183,7 @@ function App() {
                 model: getCurrentModel(),
                 explanationStyle: explanationStyle
             };
-            const result = await improvePrompt(currentPrompt, settingsForAPI);
+            const result = await improvePrompt(currentPrompt, settingsForAPI, attachedFiles);
             setImprovementPoints(result.improvementPoints || []);
             setStructuredPrompt(result.structuredPrompt || '');
 
@@ -201,6 +208,52 @@ function App() {
 
     const handleApplyPlaceholders = (values) => {
         setPlaceholderValues(values);
+    };
+
+    // File attachment handlers
+    const handleFileSelect = (e) => {
+        const files = Array.from(e.target.files || []);
+        setAttachedFiles(prev => [...prev, ...files]);
+    };
+
+    const handleFileButtonClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleFileDelete = (file) => {
+        setFileToDelete(file);
+    };
+
+    const confirmFileDelete = () => {
+        setAttachedFiles(prev => prev.filter(f => f !== fileToDelete));
+        setFileToDelete(null);
+    };
+
+    const cancelFileDelete = () => {
+        setFileToDelete(null);
+    };
+
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        setIsDraggingOver(true);
+    };
+
+    const handleDragLeave = (e) => {
+        e.preventDefault();
+        setIsDraggingOver(false);
+    };
+
+    const handleDrop = (e) => {
+        e.preventDefault();
+        setIsDraggingOver(false);
+        const files = Array.from(e.dataTransfer.files || []);
+        setAttachedFiles(prev => [...prev, ...files]);
+    };
+
+    const getFileIcon = (file) => {
+        if (file.type.startsWith('image/')) return <ImageIcon size={16} />;
+        if (file.type === 'application/pdf') return <File size={16} />;
+        return <FileText size={16} />;
     };
 
     const handleCopy = async () => {
@@ -434,6 +487,10 @@ function App() {
                         onChange={(e) => setCurrentPrompt(e.target.value)}
                         placeholder={t('main_prompt_placeholder')}
                         style={{ flex: 1, minHeight: '60px' }} // Allow textarea to shrink more
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onDrop={handleDrop}
+                        className={isDraggingOver ? 'drag-over' : ''}
                     />
                     <div className="explanation-style-group" style={{ flexShrink: 0 }}>
                         <div
@@ -471,7 +528,46 @@ function App() {
                             ))}
                         </div>
                     </div>
-                    <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+
+                    {/* File Attachment Bar */}
+                    {attachedFiles.length > 0 && (
+                        <div style={{
+                            display: 'flex',
+                            gap: '8px',
+                            flexWrap: 'wrap',
+                            padding: '8px 0',
+                            flexShrink: 0
+                        }}>
+                            {attachedFiles.map((file, index) => (
+                                <div
+                                    key={index}
+                                    className="file-chip"
+                                    title={file.name}
+                                    onClick={() => handleFileDelete(file)}
+                                >
+                                    {getFileIcon(file)}
+                                    <span className="file-chip-name">{file.name}</span>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    <div style={{ display: 'flex', gap: '8px', flexShrink: 0, alignItems: 'center' }}>
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            onChange={handleFileSelect}
+                            style={{ display: 'none' }}
+                            multiple
+                        />
+                        <button
+                            className="btn btn-icon"
+                            onClick={handleFileButtonClick}
+                            title="Attach files"
+                            style={{ marginLeft: 'auto' }}
+                        >
+                            <Paperclip size={16} />
+                        </button>
                         <button className="btn btn-secondary" onClick={handleCapture}>
                             <ArrowRight size={16} /> {t('main_capture')}
                         </button>
@@ -584,6 +680,14 @@ function App() {
                 onClose={handleCloseModal}
                 onApply={handleApplyPlaceholders}
                 promptText={structuredPrompt}
+            />
+
+            <ConfirmDialog
+                isOpen={fileToDelete !== null}
+                title="Delete File"
+                message={`Are you sure you want to remove "${fileToDelete?.name}"?`}
+                onConfirm={confirmFileDelete}
+                onCancel={cancelFileDelete}
             />
         </div>
     );

@@ -8,7 +8,7 @@ export const getSettings = async () => {
     return await chrome.storage.local.get(['apiKey', 'provider', 'openaiModel', 'geminiModel', 'claudeModel', 'xaiModel', 'explanationStyle']);
 };
 
-export const improvePrompt = async (currentPrompt, settings) => {
+export const improvePrompt = async (currentPrompt, settings, files = []) => {
     const { apiKey, provider, model, explanationStyle } = settings;
 
     if (!apiKey) {
@@ -18,19 +18,20 @@ export const improvePrompt = async (currentPrompt, settings) => {
     const systemPrompt = getSystemPrompt(explanationStyle || 'beginnerFriendly');
 
     if (provider === 'openai') {
-        return await callOpenAI(apiKey, model || 'gpt-5-mini', systemPrompt, currentPrompt);
+        return await callOpenAI(apiKey, model || 'gpt-5-mini', systemPrompt, currentPrompt, files);
     } else if (provider === 'gemini') {
-        return await callGemini(apiKey, model || 'gemini-2.5-pro', systemPrompt, currentPrompt);
+        return await callGemini(apiKey, model || 'gemini-2.5-pro', systemPrompt, currentPrompt, files);
     } else if (provider === 'claude') {
-        return await callClaude(apiKey, model || 'claude-sonnet-4-5', systemPrompt, currentPrompt);
+        return await callClaude(apiKey, model || 'claude-sonnet-4-5', systemPrompt, currentPrompt, files);
     } else if (provider === 'xai') {
-        return await callXAI(apiKey, model || 'grok-4-0709', systemPrompt, currentPrompt);
+        return await callXAI(apiKey, model || 'grok-4-0709', systemPrompt, currentPrompt, files);
     } else {
         throw new Error('Invalid provider selected.');
     }
 };
 
-async function callOpenAI(apiKey, model, systemPrompt, userPrompt) {
+async function callOpenAI(apiKey, model, systemPrompt, userPrompt, files = []) {
+
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -60,7 +61,7 @@ async function callOpenAI(apiKey, model, systemPrompt, userPrompt) {
     }
 }
 
-async function callGemini(apiKey, model, systemPrompt, userPrompt) {
+async function callGemini(apiKey, model, systemPrompt, userPrompt, files = []) {
     // Gemini API (Google AI Studio)
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
@@ -92,7 +93,7 @@ async function callGemini(apiKey, model, systemPrompt, userPrompt) {
     }
 }
 
-async function callClaude(apiKey, model, systemPrompt, userPrompt) {
+async function callClaude(apiKey, model, systemPrompt, userPrompt, files = []) {
     // Anthropic Claude API
     const response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
@@ -130,7 +131,7 @@ async function callClaude(apiKey, model, systemPrompt, userPrompt) {
     }
 }
 
-async function callXAI(apiKey, model, systemPrompt, userPrompt) {
+async function callXAI(apiKey, model, systemPrompt, userPrompt, files = []) {
     const response = await fetch('https://api.x.ai/v1/chat/completions', {
         method: 'POST',
         headers: {
