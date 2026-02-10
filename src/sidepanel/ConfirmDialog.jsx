@@ -1,5 +1,6 @@
 import React from 'react';
 import './ConfirmDialog.css';
+import useTranslation from '../hooks/useTranslation';
 
 /**
  * ConfirmDialog - A custom styled confirmation dialog
@@ -10,6 +11,7 @@ import './ConfirmDialog.css';
  * @param {function} onCancel - Callback when user cancels
  */
 function ConfirmDialog({ isOpen, title, message, onConfirm, onCancel }) {
+    const { t } = useTranslation();
     if (!isOpen) return null;
 
     return (
@@ -19,10 +21,10 @@ function ConfirmDialog({ isOpen, title, message, onConfirm, onCancel }) {
                 <p className="confirm-dialog-message">{message}</p>
                 <div className="confirm-dialog-actions">
                     <button className="btn btn-secondary" onClick={onCancel}>
-                        Cancel
+                        {t('confirm_delete_file_cancel')}
                     </button>
                     <button className="btn btn-danger" onClick={onConfirm}>
-                        Delete
+                        {t('confirm_delete_file_confirm')}
                     </button>
                 </div>
             </div>

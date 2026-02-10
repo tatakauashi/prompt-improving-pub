@@ -56,6 +56,7 @@ function App() {
     const [fileToDelete, setFileToDelete] = useState(null);
     const [isDraggingOver, setIsDraggingOver] = useState(false);
     const fileInputRef = useRef(null);
+    const imageInputRef = useRef(null);
 
     // Translation hook
     const { t, currentLanguage, changeLanguage, supportedLanguages } = useTranslation();
@@ -214,10 +215,22 @@ function App() {
     const handleFileSelect = (e) => {
         const files = Array.from(e.target.files || []);
         setAttachedFiles(prev => [...prev, ...files]);
+        // allow selecting the same file again
+        e.target.value = '';
+    };
+
+    const handleImageSelect = (e) => {
+        const files = Array.from(e.target.files || []);
+        setAttachedFiles(prev => [...prev, ...files]);
+        e.target.value = '';
     };
 
     const handleFileButtonClick = () => {
         fileInputRef.current?.click();
+    };
+
+    const handleImageButtonClick = () => {
+        imageInputRef.current?.click();
     };
 
     const handleFileDelete = (file) => {
@@ -559,12 +572,28 @@ function App() {
                             onChange={handleFileSelect}
                             style={{ display: 'none' }}
                             multiple
+                            accept="application/pdf,text/plain,text/markdown,text/csv,application/json,.txt,.md,.csv,.json"
+                        />
+                        <input
+                            type="file"
+                            ref={imageInputRef}
+                            onChange={handleImageSelect}
+                            style={{ display: 'none' }}
+                            multiple
+                            accept="image/*"
                         />
                         <button
                             className="btn btn-icon"
-                            onClick={handleFileButtonClick}
-                            title="Attach files"
+                            onClick={handleImageButtonClick}
+                            title={t('main_attach_images')}
                             style={{ marginLeft: 'auto' }}
+                        >
+                            <ImageIcon size={16} />
+                        </button>
+                        <button
+                            className="btn btn-icon"
+                            onClick={handleFileButtonClick}
+                            title={t('main_attach_files')}
                         >
                             <Paperclip size={16} />
                         </button>
@@ -684,8 +713,8 @@ function App() {
 
             <ConfirmDialog
                 isOpen={fileToDelete !== null}
-                title="Delete File"
-                message={`Are you sure you want to remove "${fileToDelete?.name}"?`}
+                title={t('confirm_delete_file')}
+                message={t('confirm_delete_file_message', { fileName: fileToDelete?.name })}
                 onConfirm={confirmFileDelete}
                 onCancel={cancelFileDelete}
             />
